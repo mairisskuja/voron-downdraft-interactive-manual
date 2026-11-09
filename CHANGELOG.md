@@ -2,6 +2,14 @@
 
 Changes to the interactive manual at https://iconic-fab.com/voron/downdraft/. Dates are release dates. Where the drawing differs from the official CAD or manual, the details are in [docs/transcripts/](docs/transcripts/) under "CAD vs manual", and in [evidence.md](evidence.md).
 
+## 2026-11-09 (update)
+
+### Fixed
+
+- **Logo LED and nozzle LEDs on the 4010** ([`#led-insert`](https://iconic-fab.com/voron/downdraft/#led-insert)): the CAD places the diffuser, mask, logo LED carrier and nozzle LED mounts for the 5015 front mount, so on the 4010 they stood 12.7 mm (logo) and 3 mm (nozzle mount) in front of the front mount. They now sit in the 4010 front's window and seat, measured from its geometry.
+- **Chain mount board inserts** ([`#cc-inserts`](https://iconic-fab.com/voron/downdraft/#cc-inserts)): the CAD's four board inserts belong to the PUG mount's back face and floated beside the chain mount. The chain mount's inserts are now drawn in its own bores on its front face (towards the toolhead), and its PCB spacers in front of them ([`#cc-pcb`](https://iconic-fab.com/voron/downdraft/#cc-pcb)).
+- Paths: the chain mount's PCB spacers come in from the toolhead side; the LED strip backer from the front and below.
+
 ## 2026-11-09: first release
 
 - The whole official manual (version 2026-08-15), pp. 14–44, on the official CAD (`Downdraft_Toolheads.step`, VoronDesign/voron-downdraft `c1fbbd0`): front mount, hotend fan, LEDs, part cooling fans, hotend mount, extruder and toolhead mounting, and both rear-mount examples. 22–24 steps, depending on the build options.

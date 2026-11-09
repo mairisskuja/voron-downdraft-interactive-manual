@@ -30,8 +30,10 @@ Where the CAD draws a part in only one of the places an option puts it, a copy o
 | --- | --- | --- |
 | 4010 hotend fan | Low height only | +6 mm (Middle), +20 mm (High), as the 5015 fans are spaced |
 | 5015 hotend fan spacer and its 4 screws | Low height only | +6 mm, +20 mm |
-| Logo LED parts (diffuser, mask, carrier, LED) | At the Low front mount's logo window only | At the window of the chosen front mount, measured by matching the Low mount's logo pocket in the others: Middle +1.5 mm (4010) / +3.0 mm (5015), High −33.7 mm (the High fronts have the logo below the hotend fan) |
+| Logo LED parts (diffuser, mask, carrier, LED) | At the 5015 Low front mount's logo window only | At the window of the chosen front, measured by matching the 5015 Low front's logo pocket in the others: 4010 fronts 12.7 mm further back; Middle +1.5 mm (4010) / +3.0 mm (5015); High −33.7 mm (below the hotend fan) |
+| Nozzle LED mounts and the 4010 strip backer | In the 5015 front's seat | 4010: 3 mm further back, matching the 4010 front's seat and the CAD's 4010 Neopixels |
 | Nozzle Neopixel, one-LED mount | Two Neopixels (x2 mount) | The right one, moved 5.5 mm to the middle |
+| Chain mount board inserts (4) and PCB spacers (2) | The CAD's board inserts and spacers fit the PUG mount (its back face, y 50) | Chain mount: copies in its own four insert bores, which open on its front face (y 54.6, towards the toolhead, found by fitting the 2.3 mm bores); the spacers in front of it at its 36 mm board holes |
 | Chain mount top inserts (3) | Not in the CAD | Copies of the front mount's top insert, in the three 4.6 mm holes on top of the 3-hole chain mount (found by comparing it with the 2-hole mount) |
 
 ## Decisions

@@ -4,23 +4,22 @@
 // Neopixels of each version. One Neopixel mount: the CAD's right Neopixel is drawn moved to the
 // middle. LED strip: the strip is not in the CAD. See docs/transcripts/02-leds.md.
 //
-//
-// The logo window sits at a different height on each front mount; the CAD has the logo parts at
-// the Low window only. Measured by matching the Low mount's logo pocket in the other mounts:
-// Middle +1.5 mm (4010) / +3.0 mm (5015), High −33.7 mm (below the hotend fan). The diffuser,
-// mask, carrier and logo LED are drawn as copies at the window of the chosen front mount.
+// The CAD places the logo parts and the nozzle LED mounts for the 5015 Low front mount. The other
+// fronts have their logo window and nozzle-mount seat elsewhere, measured by matching the 5015 Low
+// front's geometry in each: the 4010 fronts are 12.7 mm shallower at the logo (3 mm at the nozzle
+// mount, as the CAD's 4010 Neopixels are); the Middle fronts lift the logo 1.5 mm (4010) or 3 mm
+// (5015), the High fronts lower it 33.7 mm, below the hotend fan. Those parts are drawn as copies
+// in the chosen front's window and seat.
 module.exports = ctx => {
   const {pick, add, near, each, move, copy, HEIGHT} = ctx;
   const {FRONTS} = ctx.ids.fm;
   const L = s => new RegExp('Common_Parts:1/Logo_Led:1/' + s);
   const N = s => new RegExp('Common_Parts:1/Nozzle_Led:1/' + s);
   const onFront = {parents: FRONTS};
-  const WINDOWS = [
-    {tag: '', dz: 0, when: HEIGHT('low')},
-    {tag: '-mid4010', dz: 1.5, when: ['variant=4010', HEIGHT('middle')], why: 'logo window of the 4010 Middle front mount'},
-    {tag: '-mid5015', dz: 3, when: ['variant=5015', HEIGHT('middle')], why: 'logo window of the 5015 Middle front mount'},
-    {tag: '-high', dz: -33.7, when: HEIGHT('high'), why: 'logo window of the High front mount'}
-  ];
+  const WINDOWS = [];
+  for (const [v, dy] of [['5015', 0], ['4010', 12.7]]) for (const [h, dz] of [['low', 0], ['middle', v === '4010' ? 1.5 : 3], ['high', -33.7]]) {
+    WINDOWS.push({tag: v === '5015' && h === 'low' ? '' : `-${v}-${h}`, dy, dz, when: [`variant=${v}`, HEIGHT(h)], why: `logo window of the ${v} ${h} front mount`});
+  }
   const src = {
     diffuser: pick(L('\\[c\\]_LED_Diffuser:'), 1), mask: pick(L('\\[o\\]_LED_Diffuser_Mask:'), 1),
     np: pick(L('\\[o\\]_Neopixel_Carrier:'), 1), barf: pick(L('\\[o\\]_BARF_LED_Carrier:'), 1),
@@ -28,8 +27,8 @@ module.exports = ctx => {
   };
   const DIFFUSERS = [], MASKS = [], CARRIERS = [], LOGO_LEDS = [];
   for (const w of WINDOWS) {
-    const at = list => w.dz ? list.map(i => copy(i, [0, 0, w.dz], w.why)) : list;
-    const note = w.dz ? `, drawn ${w.dz > 0 ? '+' : ''}${w.dz} mm at this front mount’s logo window` : '';
+    const at = list => w.dy || w.dz ? list.map(i => copy(i, [0, w.dy, w.dz], w.why)) : list;
+    const note = w.dy || w.dz ? ', drawn in this front mount’s logo window' : '';
     const both = x => [].concat(w.when, x || []);
     DIFFUSERS.push(add('led-diffuser' + w.tag, 'LED diffuser', at(src.diffuser), 'glass', {...onFront, when: both(), note: '[c]_LED_Diffuser.stl, translucent' + note}));
     MASKS.push(add('led-mask' + w.tag, 'LED diffuser mask', at(src.mask), 'primary', {...onFront, when: both(), note: '[o]_LED_Diffuser_Mask.stl, opaque' + note}));
@@ -39,25 +38,29 @@ module.exports = ctx => {
     LOGO_LEDS.push(add('led-logo-np' + w.tag, 'Neopixel (logo)', at(src.npLed), 'electronics', {parent: npCarrier, when: both('logo=neopixel')}),
       add('led-logo-barf' + w.tag, 'BARF LED board', at(src.barfLed), 'electronics', {parent: barfCarrier, when: both('logo=barf')}));
   }
-  const nozzleMount = {
-    x2: add('led-nozzle-x2', 'Nozzle LED mount (2 LEDs)', pick(N('Nozzle_LEDx2_Mount:'), 1), 'primary', {...onFront, when: 'nozzle=x2', note: 'Nozzle_LEDx2_Mount.stl'}),
-    x1: add('led-nozzle-x1', 'Nozzle LED mount (1 LED)', pick(N('Nozzle_LEDx1_Mount:'), 1), 'primary', {...onFront, when: 'nozzle=x1', note: 'Nozzle_LEDx1_Mount.stl'}),
-    strip: add('led-nozzle-strip', 'Nozzle LED strip mount', pick(N('Nozzle_LED_Strip_Mount:'), 1), 'primary', {...onFront, when: 'nozzle=strip', note: 'Nozzle_LED_Strip_Mount.stl'})
-  };
+  // Nozzle LED mounts and strip backers: the CAD's, in the 5015 seat; for the 4010, copies 3 mm back.
+  const NOZ = [['x2', 'Nozzle LED mount (2 LEDs)', 'Nozzle_LEDx2_Mount'], ['x1', 'Nozzle LED mount (1 LED)', 'Nozzle_LEDx1_Mount'], ['strip', 'Nozzle LED strip mount', 'Nozzle_LED_Strip_Mount']];
+  const nozzleMount = {'4010': {}, '5015': {}};
+  for (const [key, name, cad] of NOZ) {
+    const i = pick(N(cad + ':'), 1);
+    nozzleMount['5015'][key] = add(`led-nozzle-${key}`, name, i, 'primary', {...onFront, when: [`nozzle=${key}`, 'variant=5015'], note: cad + '.stl'});
+    nozzleMount['4010'][key] = add(`led-nozzle-${key}-4010`, name, i.map(j => copy(j, [0, 3, 0], '4010 nozzle LED seat')), 'primary',
+      {...onFront, when: [`nozzle=${key}`, 'variant=4010'], note: cad + '.stl, drawn in the 4010 front mount’s seat'});
+  }
   const backer = {
-    '4010': add('led-backer-4010', 'LED strip backer (4010)', pick(N('Nozzle_LED_Strip_Backer_4010:'), 1), 'primary', {parent: nozzleMount.strip, when: ['nozzle=strip', 'variant=4010'], note: 'Nozzle_LED_Strip_Backer_4010.stl'}),
-    '5015': add('led-backer-5015', 'LED strip backer (5015)', pick(N('Nozzle_LED_Strip_Backer_5015:'), 1), 'primary', {parent: nozzleMount.strip, when: ['nozzle=strip', 'variant=5015'], note: 'Nozzle_LED_Strip_Backer_5015.stl'})
+    '4010': add('led-backer-4010', 'LED strip backer (4010)', pick(N('Nozzle_LED_Strip_Backer_4010:'), 1).map(j => copy(j, [0, 3, 0], '4010 nozzle LED seat')), 'primary', {parent: nozzleMount['4010'].strip, when: ['nozzle=strip', 'variant=4010'], note: 'Nozzle_LED_Strip_Backer_4010.stl'}),
+    '5015': add('led-backer-5015', 'LED strip backer (5015)', pick(N('Nozzle_LED_Strip_Backer_5015:'), 1), 'primary', {parent: nozzleMount['5015'].strip, when: ['nozzle=strip', 'variant=5015'], note: 'Nozzle_LED_Strip_Backer_5015.stl'})
   };
   const NP = v => new RegExp(`/${v}:1/${v}_Hardware:1/Neopixel Mini Button PCB`);
   const nozzleLeds = [];
   for (const v of ['4010', '5015']) {
     const y = v === '4010' ? -22.2 : -25.2;
     const [left, right] = near(NP(v), [[-5.5, y, 18.2], [5.5, y, 18.2]]);
-    nozzleLeds.push(...each(`led-np-${v}`, 'Neopixel (nozzle)', [left, right], 'electronics', {parent: nozzleMount.x2, when: ['nozzle=x2', `variant=${v}`]}));
+    nozzleLeds.push(...each(`led-np-${v}`, 'Neopixel (nozzle)', [left, right], 'electronics', {parent: nozzleMount[v].x2, when: ['nozzle=x2', `variant=${v}`]}));
     nozzleLeds.push(add(`led-np1-${v}`, 'Neopixel (nozzle)', copy(right, [-5.5, 0, 0], 'one-LED nozzle mount'), 'electronics',
-      {parent: nozzleMount.x1, when: ['nozzle=x1', `variant=${v}`], note: 'the CAD’s right Neopixel, drawn in the middle'}));
+      {parent: nozzleMount[v].x1, when: ['nozzle=x1', `variant=${v}`], note: 'the CAD’s right Neopixel, drawn in the middle'}));
   }
-  const NOZZLE_MOUNTS = Object.values(nozzleMount);
+  const NOZZLE_MOUNTS = [...Object.values(nozzleMount['5015']), ...Object.values(nozzleMount['4010'])];
   ctx.ids.led = {DIFFUSERS, MASKS, CARRIERS, NOZZLE_MOUNTS};
   const STRIP = {name: 'LED strip, 144 pixels/m', qty: 1, when: 'nozzle=strip'};
   return [
@@ -73,7 +76,7 @@ module.exports = ctx => {
     {
       id: 'led-carriers', section: 'LEDs', title: 'LEDs into their carriers', pages: [18],
       bench: [...CARRIERS, ...NOZZLE_MOUNTS], view: {az: -60, el: 25},
-      movers: [...move(LOGO_LEDS, [0, -14, 0], 0, 0), ...move(nozzleLeds, [0, 0, 14], 0, 0, 0.2), ...move(Object.values(backer), [0, 0, 12], 1, 0)],
+      movers: [...move(LOGO_LEDS, [0, -14, 0], 0, 0), ...move(nozzleLeds, [0, 0, 14], 0, 0, 0.2), ...move(Object.values(backer), [0, -10, -8], 1, 0)],
       text: ['Fit the wired logo LED into its carrier and the toolhead LEDs into the nozzle LED mount.',
         {text: 'For an LED strip, fit the strip into its mount with the backer for your version.', when: 'nozzle=strip'}],
       extras: [STRIP]

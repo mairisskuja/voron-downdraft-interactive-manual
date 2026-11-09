@@ -30,8 +30,15 @@ module.exports = ctx => {
   const lowL = add('rm-m3x8-left', 'M3x8 BHCS', at(HW('M3x8 BHCS'), [-24.0, 18.5, 70.3]), 'bolt', {...onRear, when: PUG});
   const upL = add('rm-m3x16-left', 'M3x16 BHCS', at(HW('M3x16 BHCS'), [-21.0, 18.5, 76.8]), 'bolt', {...onRear, when: PUG});
   function at(re, p) { return ctx.at(re, p); }
-  // Inserts. Board holes on the back face, shared by both mounts.
-  const boardIns = each('rm-insert-board', 'M3 heat set insert', near(HW('M3 Threaded Insert'), [[-21.8, 48.0, 95.6], [22.0, 48.0, 95.6], [-19.1, 48.0, 102.5], [-7.1, 48.0, 89.8]]), 'insert', onRear);
+  // Board inserts. PUG mount: the CAD's four, in its back face (y 50). The chain mount has its
+  // board bores elsewhere, in its front face (y 54.6, towards the toolhead; found by fitting the
+  // 2.3 mm insert bores): copies of the CAD's board insert, flush in those bores.
+  const pugBoard = near(HW('M3 Threaded Insert'), [[-21.8, 48.0, 95.6], [22.0, 48.0, 95.6], [-19.1, 48.0, 102.5], [-7.1, 48.0, 89.8]]);
+  const boardIns = each('rm-insert-board', 'M3 heat set insert', pugBoard, 'insert', {parent: pugMount, when: PUG});
+  const bc = ctx.center(pugBoard[0]);
+  const chainBoardIns = each('rm-insert-chainboard', 'M3 heat set insert',
+    [[-17.9, 102.2], [25.9, 102.2], [-5.8, 89.5], [-0.1, 87.9]].map(([x, z]) => copy(pugBoard[0], [x - bc[0], 56.6 - bc[1], z - bc[2]], 'chain mount board insert')),
+    'insert', {parent: chainMount, when: CHAIN, note: 'drawn in the chain mount’s board insert bores'});
   // Chain mount: three on top, for the chain's fixed end link. Copies of the front mount's top insert (vertical, 5 mm long).
   const src = pick(/\/4010:1\/4010_Hardware:1\/M3 Threaded Insert/).find(i => ctx.dist(ctx.center(i), [10.6, -17.2, 73.8]) < 1);
   const sc = ctx.center(src);
@@ -41,7 +48,12 @@ module.exports = ctx => {
   const pugIns = each('rm-insert-pug', 'M3 heat set insert', near(HW('M3 Threaded Insert'), [[-13.7, 24.1, 99.7], [-26.0, 43.8, 99.7], [-29.2, 43.1, 83.0], [-29.2, 27.5, 77.1]]), 'insert', {parent: pugMount, when: PUG});
   const clampScrews = [add('rm-clamp-m3x8', 'M3x8 BHCS', at(HW('M3x8 BHCS'), [-27.2, 42.4, 99.7]), 'bolt', {parent: clamp, when: PUG}),
     add('rm-clamp-m3x12', 'M3x12 BHCS', at(HW('M3x12 BHCS'), [-17.6, 24.1, 99.7]), 'bolt', {parent: clamp, when: PUG})];
-  const spacers = each('rm-spacer', 'PCB spacer 4 mm', near(C('PCB_And_Chain_Mounts:1/PCB_4mm_Spacers:'), [[-21.9, 52, 95.6], [21.9, 52, 95.6]]), 'primary', {...onRear, when: PCB, note: 'PCB_4mm_Spacer_x2.stl'});
+  // PCB spacers: the CAD's, behind the PUG mount; for the chain mount, copies in front of its plate
+  // at its 36 mm board holes (4 mm right, 0.6 mm back, 6.6 mm up from the PUG mount's).
+  const spacerSrc = near(C('PCB_And_Chain_Mounts:1/PCB_4mm_Spacers:'), [[-21.9, 52, 95.6], [21.9, 52, 95.6]]);
+  const spacers = each('rm-spacer', 'PCB spacer 4 mm', spacerSrc, 'primary', {parent: pugMount, when: PUG, note: 'PCB_4mm_Spacer_x2.stl'});
+  const chainSpacers = each('rm-spacer-chain', 'PCB spacer 4 mm', spacerSrc.map(i => copy(i, [4, 0.6, 6.6], 'chain mount board holes')), 'primary',
+    {parent: chainMount, when: 'wiring=chain-pcb', note: 'PCB_4mm_Spacer_x2.stl, at the chain mount’s board holes'});
   const BOARD = [{name: 'Toolhead PCB (36 mm)', qty: 1}, {name: 'M3x10 BHCS', qty: 2}];
   const BACK = {az: 120, el: 25}, BENCH = {az: 150, el: 25};
   const C1 = 'Cable Chain', C2 = 'PCB + PUG Umbilical';
@@ -61,7 +73,7 @@ module.exports = ctx => {
       id: 'cc-inserts', section: 'Cable Chain', title: 'Cable chain mount inserts', pages: [34], chapter: C1, when: CHAIN,
       bench: [chainMount], view: BENCH,
       // The chain arm runs behind the right board insert: it comes in at an angle.
-      movers: [...boardIns.map((id, k) => ({id, vec: k === 1 ? [9, 14, -6] : [0, 14, 0], phase: 0, delay: k * 0.1})), ...auto(chainIns, 1, 0.1)],
+      movers: [...move(chainBoardIns, [0, -14, 0], 0, 0.1), ...auto(chainIns, 1, 0.1)],
       text: ['Add 4 heatset inserts to the front of the cable chain mount.', 'Add 3 heatset inserts to the top of the cable chain mount.'],
       notes: [ctx.notes.INSERTS]
     },
@@ -81,7 +93,7 @@ module.exports = ctx => {
     },
     {
       id: 'cc-pcb', section: 'Cable Chain', title: 'Toolhead board', pages: [37, 38, 39], chapter: C1, when: 'wiring=chain-pcb',
-      view: BACK, movers: spacers.map((id, k) => ({id, vec: [k ? 13 : -13, 19.5, -8.4], phase: 0, delay: k * 0.15})),
+      view: BACK, movers: move(chainSpacers, [0, -14, 0], 0, 0.15),
       text: ['Line up the two spacers behind the PCB. These provide clearance for the components on the toolhead PCB.',
         'Align the PCB and spacers with the mounting holes on the PCB mount, then secure the board with two M3x10 BHCS.'],
       extras: BOARD,
@@ -114,7 +126,7 @@ module.exports = ctx => {
     },
     {
       id: 'pug-pcb', section: 'PCB + PUG Umbilical', title: 'Toolhead board', pages: [44], chapter: C2, when: PUG,
-      view: BACK, movers: spacers.map((id, k) => ({id, vec: [k ? 13 : -13, 19.5, -8.4], phase: 0, delay: k * 0.15})),
+      view: BACK, movers: move(spacers, [0, 20, 0], 0, 0.15),
       text: ['Line up the two spacers behind the PCB. These provide clearance for the components on the toolhead PCB.',
         'Align the PCB and spacers with the mounting holes on the PCB mount, then secure the board with two M3x10 BHCS.'],
       extras: BOARD,

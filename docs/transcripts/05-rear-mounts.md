@@ -53,6 +53,7 @@ Text: the two spacers behind the PCB; align and secure the board with two M3x10 
 | Manual | CAD | Shown |
 | --- | --- | --- |
 | The chain mount (3 top inserts in the example) | 2-hole and 3-hole generic chain mounts, plus extruder-specific versions | The generic 3-hole mount |
+| p.34: 4 inserts on the front of the chain mount | The CAD's four board inserts (and the 4 mm PCB spacers) fit the PUG mount's back face | Chain mount: copies in its own bores on its front face (towards the toolhead), the spacers in front of them; the PCB goes on that side |
 | p.34: 3 top inserts | Not modelled | Copies of an insert placed in the three 4.6 mm holes on top (found by comparing the 3-hole and 2-hole mounts) |
 | p.41: the PUG/chain mount | Generic left and right integrated PUG mounts, a generic PUG mount with a separate clamp, extruder-specific versions | The integrated left mount and its clamp, which match the CAD's clamp screws and left-face inserts |
 | Wiring | — | Option *Wiring*: chain with PCB, chain without PCB, PCB + PUG |
