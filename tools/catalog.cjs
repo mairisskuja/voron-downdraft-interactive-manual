@@ -27,8 +27,8 @@ const HOTENDS = [
   {value: 'dragon', label: 'Phaetus Dragon SF / HF', mount: 'Dragon_Mount', code: 'DRGN', height: 'low'},
   {value: 'chube', label: 'Chube Compact', mount: 'Chube_Compact_Mount', code: 'CHBC', height: 'low'},
   {value: 'tz-v6', label: 'TZ-V6 v2 (V6 nozzle)', mount: 'TZ_V6_v2_Mount', code: 'TZV6.2', height: 'low'},
-  {value: 'dragon-ace', label: 'Phaetus Dragon Ace', mount: 'Dragon_Ace_Mount', code: 'D.ACE', height: 'middle'},
-  {value: 'dragon-volcano', label: 'Phaetus Dragon Volcano', mount: 'RapidoHF_DragonVolcano_Mount', code: 'RAPID', height: 'middle'},
+  {value: 'dragon-ace', label: 'Trianglelab Dragon Ace', mount: 'Dragon_Ace_Mount', code: 'D.ACE', height: 'middle'},
+  {value: 'dragon-volcano', label: 'Trianglelab Dragon Ace Volcano', mount: 'RapidoHF_DragonVolcano_Mount', code: 'RAPID', height: 'middle'},
   {value: 'rapido-hf', label: 'Phaetus Rapido HF', mount: 'RapidoHF_DragonVolcano_Mount', code: 'RAPID', height: 'middle'},
   {value: 'tricorn-short', label: 'Tricorn Air Short', mount: 'Tricorn_Short_Mount', code: 'TRI.S', height: 'middle'},
   {value: 'revo-volcano', label: 'E3D Revo Voron Volcano', mount: 'ReVolcano_Mount', code: 'R.VOL', height: 'middle'},
@@ -37,7 +37,7 @@ const HOTENDS = [
   {value: 'rapido-uhf', label: 'Phaetus Rapido UHF', mount: 'Dragon_Rapido_UHF_Mount', code: 'D.UHF', height: 'high'},
   {value: 'rapido-x', label: 'Phaetus Rapido X', mount: 'Rapido_X_Mount', code: 'RAP X', height: 'high'},
   {value: 'tricorn-long', label: 'Tricorn Air Long', mount: 'Tricorn_Long_Mount', code: 'TRI.L', height: 'high'},
-  {value: 'dragon-ace-mze', label: 'Phaetus Dragon Ace + MZE', mount: 'Dragon_Ace_Mount_MZE', code: 'D.ACM', height: 'high'}
+  {value: 'dragon-ace-mze', label: 'Trianglelab Dragon Ace + MZE', mount: 'Dragon_Ace_Mount_MZE', code: 'D.ACM', height: 'high'}
 ];
 // `when` for every hotend on one front mount height.
 const HEIGHT = h => 'hotend=' + HOTENDS.filter(x => x.height === h).map(x => x.value).join('|');

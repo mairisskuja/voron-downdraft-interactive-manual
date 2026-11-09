@@ -2,6 +2,12 @@
 
 Changes to the interactive manual at https://iconic-fab.com/voron/downdraft/. Dates are release dates. Where the drawing differs from the official CAD or manual, the details are in [docs/transcripts/](docs/transcripts/) under "CAD vs manual", and in [evidence.md](evidence.md).
 
+## 2026-11-10
+
+### Fixed
+
+- **Hotend names:** the Dragon Ace, Dragon Ace Volcano and Dragon Ace + MZE are Trianglelab hotends; the picker said Phaetus. Their option values (`dragon-ace`, `dragon-volcano`, `dragon-ace-mze`) are unchanged, so existing links still work.
+
 ## 2026-11-09 (update)
 
 ### Fixed
